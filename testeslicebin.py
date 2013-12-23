@@ -86,6 +86,13 @@ with open('estac_total_altitudes', 'r') as listaestac:
 
 coor = map(latlon_to_grid, lat, lon)
 
+lat_testinho = []
+lon_testinho = []
+
+for c in coor:
+    lat_testinho.append(c[0])
+    lon_testinho.append(c[1])
+
 """"""""""""""""""""""""""""""""""""""
 # DEFINICAO DE PARAMETROS DA GRADE
 """"""""""""""""""""""""""""""""""""""
@@ -103,17 +110,20 @@ rlatfim = 90.
 """"""""""""""""""""""""""""""""""""""
 # tmax.01.2013121700.daily_1.0.dat
 # tmax.01.2013120300.mensal_1.0.dat
-teste = readslice('tmax.01.2013121700.daily_1.0.dat', nx, ny)
+teste = readslice('tmax.01.2013120300.mensal_1.0.dat', nx, ny)
+
 # print teste.shape
 rec = teste.shape[0]
 rec /= nx * ny
 teste1 = teste.reshape(nx, ny, rec, order='F')
+# print coor.shape
 # print coor
-testinho = np.array([[310.11], [75.93]])
-testet1 = teste1[:, :, 0].T
-print testet1
-print ndimage.map_coordinates(testet1, testinho.T)
-print teste1.shape
+testinho = np.array([lon_testinho, lat_testinho])
+print testinho.shape
+testet1 = teste1[:, :, 1].T
+# print testet1
+print ndimage.map_coordinates(testet1, testinho)
+# print teste1.shape
 # teste1 = np.rollaxis(teste1, 0, 3)
 # teste1 = np.rollaxis(teste1, 0, 2)
 print teste1.shape
@@ -124,10 +134,8 @@ nrows = teste1.shape[1]
 ncols = teste1.shape[0]
 
 
-
 # print teste1
 # print_slice('tmax.01.2013120300.mensal_1.0.dat', 30, 90)
-
 """ IMPORTANTE >> teste1[:.:,1].T
  tranposta, fortran inverte os axis por default! """
 
