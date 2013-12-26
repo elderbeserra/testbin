@@ -21,7 +21,7 @@ import numpy as np
 import math
 from scipy import ndimage, interpolate
 import matplotlib.pyplot as plt
-from subprocess import call
+from datetime import date
 
 
 def readslice(inputfilename, nx, ny):
@@ -86,12 +86,12 @@ with open('estac_total_altitudes', 'r') as listaestac:
 
 coor = map(latlon_to_grid, lat, lon)
 
-lat_testinho = []
-lon_testinho = []
+lat_coor = []
+lon_coor = []
 
 for c in coor:
-    lat_testinho.append(c[0])
-    lon_testinho.append(c[1])
+    lat_coor.append(c[0])
+    lon_coor.append(c[1])
 
 """"""""""""""""""""""""""""""""""""""
 # DEFINICAO DE PARAMETROS DA GRADE
@@ -110,28 +110,56 @@ rlatfim = 90.
 """"""""""""""""""""""""""""""""""""""
 # tmax.01.2013121700.daily_1.0.dat
 # tmax.01.2013120300.mensal_1.0.dat
-teste = readslice('tmax.01.2013120300.mensal_1.0.dat', nx, ny)
+# tmax = readslice('tmax.01.2013121700.daily_1.0.dat', nx, ny)
+tmin = readslice('tmin.01.2013120300.mensal_1.0.dat', nx, ny)
+prec = readslice('prate.01.2013120300.mensal_1.0.dat', nx, ny)
 
-# print teste.shape
-rec = teste.shape[0]
+# rec = tmax.shape[0]
+# rec /= nx * ny
+# tmax = tmax.reshape(nx, ny, rec, order='F')
+rec = tmin.shape[0]
 rec /= nx * ny
-teste1 = teste.reshape(nx, ny, rec, order='F')
-# print coor.shape
+tmin = tmin.reshape(nx, ny, rec, order='F')
+prec = prec.reshape(nx, ny, rec, order='F')
+print tmin.shape
 # print coor
-testinho = np.array([lon_testinho, lat_testinho])
-print testinho.shape
-testet1 = teste1[:, :, 1].T
-# print testet1
-print ndimage.map_coordinates(testet1, testinho)
+coor_estac = np.array([lon_coor, lat_coor])
+print coor_estac.shape
+# tmax = tmax[:, :, 1].T
+tmin = tmin[:, :, 0].T
+# print tmin[:,1,1]
+
+
+for x in xrange(0, rec - 1):
+    prec1 = prec[:, :, x].T
+    precip = ndimage.map_coordinates(prec1, coor_estac)
+    for ponto in precip:
+        print int(ponto)
+
+tmin = ndimage.map_coordinates(tmin, coor_estac)
+
+
+# tmin = tmin[:, :, 0].T
+# prec = prec[:, :, 1].T
+# tmin = ndimage.map_coordinates(tmin, coor_estac)
+# prec = ndimage.map_coordinates(prec, coor_estac)
+# print prec
+
+# tmin = ndimage.map_coordinates(tmin, coor_estac)
+# prec = ndimage.map_coordinates(prec, coor_estac)
+
+# print tmax[0]
+# print
+print tmin[0]
 # print teste1.shape
 # teste1 = np.rollaxis(teste1, 0, 3)
 # teste1 = np.rollaxis(teste1, 0, 2)
-print teste1.shape
-print teste1.shape[0]
+print tmin.shape
+print tmin.shape[0]
 # print teste1[1,1,1]
 
-nrows = teste1.shape[1]
-ncols = teste1.shape[0]
+# nrows = tmax.shape[1]
+# ncols = tmax.shape[0]
 
 
 # print teste1
