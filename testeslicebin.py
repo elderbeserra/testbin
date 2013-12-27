@@ -126,17 +126,25 @@ print tmin.shape
 coor_estac = np.array([lon_coor, lat_coor])
 print coor_estac.shape
 # tmax = tmax[:, :, 1].T
-tmin = tmin[:, :, 0].T
+# tmin = tmin[:, :, 0].T
 # print tmin[:,1,1]
 
-
-for x in xrange(0, rec - 1):
-    prec1 = prec[:, :, x].T
-    precip = ndimage.map_coordinates(prec1, coor_estac)
-    for ponto in precip:
-        print int(ponto)
-
-tmin = ndimage.map_coordinates(tmin, coor_estac)
+print coor_estac
+for i in coor:
+    print i
+    for x in xrange(0, rec - 1):
+        prec1 = prec[:, :, x].T
+        precip = ndimage.map_coordinates(prec1, coor_estac)
+        tmin1 = tmin[:, :, x].T
+        tmini = ndimage.map_coordinates(tmin1, coor_estac)
+        print precip
+# for x in xrange(0, rec - 1):
+#     prec1 = prec[:, :, x].T
+#     precip = ndimage.map_coordinates(prec1, coor_estac)
+#     tmin1 = tmin[:, :, x].T
+#     tmini = ndimage.map_coordinates(tmin1, coor_estac)
+#     for ponto in precip:
+#         print str(int(ponto)) + "," + str(int(tmini[ponto]))
 
 
 # tmin = tmin[:, :, 0].T
@@ -144,24 +152,16 @@ tmin = ndimage.map_coordinates(tmin, coor_estac)
 # tmin = ndimage.map_coordinates(tmin, coor_estac)
 # prec = ndimage.map_coordinates(prec, coor_estac)
 # print prec
-
 # tmin = ndimage.map_coordinates(tmin, coor_estac)
 # prec = ndimage.map_coordinates(prec, coor_estac)
-
 # print tmax[0]
 # print
-print tmin[0]
 # print teste1.shape
 # teste1 = np.rollaxis(teste1, 0, 3)
 # teste1 = np.rollaxis(teste1, 0, 2)
-print tmin.shape
-print tmin.shape[0]
 # print teste1[1,1,1]
-
 # nrows = tmax.shape[1]
 # ncols = tmax.shape[0]
-
-
 # print teste1
 # print_slice('tmax.01.2013120300.mensal_1.0.dat', 30, 90)
 """ IMPORTANTE >> teste1[:.:,1].T
