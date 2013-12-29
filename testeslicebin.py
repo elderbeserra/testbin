@@ -1,33 +1,16 @@
 # -*- coding: UTF-8 -*-
 
-''' ORIGINAL '''
-
-# import numpy as np
-
-
-# def readslice(inputfilename, nx, ny, timeslice):
-#     f = open(inputfilename, 'rb')
-#     f.seek(8 * timeslice * nx * ny)
-#     field = np.fromfile(f, dtype='float32', count=nx * ny)
-#     field = np.reshape(field, (nx, ny))
-#     f.close()
-#     return field
-
-# print readslice('tmax.01.2013121700.daily_1.0.dat', 2, 2, 1)
-
-''' MODIFIED '''
-
 import numpy as np
+import csv
 import math
 from scipy import ndimage, interpolate
 import matplotlib.pyplot as plt
-from datetime import date
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 
 def readslice(inputfilename, nx, ny):
     fd = open(inputfilename, 'rb')
-    # shape = ((nx, ny), timeslice)
-    # data = np.fromfile(file=fd, dtype=np.float32, count=nx * ny).reshape(nx, ny)
     data = np.fromfile(file=fd, dtype=np.float32)
     fd.close()
     return data
@@ -52,14 +35,19 @@ def calcula_lapse_rate(dheight, prec, var):
         return var
 
 
+def converte_mes(mes):
+    if mes < 10:
+        return '0' + str(mes)
+    else:
+        return str(mes)
+
+
 """ Lendo da estac_total as listas das latlons e altitudes """
 
 lat = []
 latp = []
 lon = []
 lonp = []
-# altr = []
-# altm = []
 cid = []
 dheight = []
 
@@ -75,8 +63,6 @@ with open('estac_total_altitudes', 'r') as listaestac:
     for data in lista:
         data_lixo = data.split()
         dheight.append(abs(float(data_lixo[2]) - float(data_lixo[3])))
-        # altr.append(int(data_lixo[2]))
-        # altm.append(int(data_lixo[3]))
         cid.append(data_lixo[6])
 
 
@@ -89,9 +75,6 @@ coor = map(latlon_to_grid, lat, lon)
 lat_coor = []
 lon_coor = []
 
-for c in coor:
-    lat_coor.append(c[0])
-    lon_coor.append(c[1])
 
 """"""""""""""""""""""""""""""""""""""
 # DEFINICAO DE PARAMETROS DA GRADE
@@ -114,56 +97,33 @@ rlatfim = 90.
 tmin = readslice('tmin.01.2013120300.mensal_1.0.dat', nx, ny)
 prec = readslice('prate.01.2013120300.mensal_1.0.dat', nx, ny)
 
-# rec = tmax.shape[0]
-# rec /= nx * ny
-# tmax = tmax.reshape(nx, ny, rec, order='F')
 rec = tmin.shape[0]
 rec /= nx * ny
 tmin = tmin.reshape(nx, ny, rec, order='F')
 prec = prec.reshape(nx, ny, rec, order='F')
-print tmin.shape
-# print coor
-coor_estac = np.array([lon_coor, lat_coor])
-print coor_estac.shape
-# tmax = tmax[:, :, 1].T
-# tmin = tmin[:, :, 0].T
-# print tmin[:,1,1]
 
-print coor_estac
+cidteste = '/home/elder/cidteste/'
 for i in coor:
-    print i
-    for x in xrange(0, rec - 1):
-        prec1 = prec[:, :, x].T
-        precip = ndimage.map_coordinates(prec1, coor_estac)
-        tmin1 = tmin[:, :, x].T
-        tmini = ndimage.map_coordinates(tmin1, coor_estac)
-        print precip
-# for x in xrange(0, rec - 1):
-#     prec1 = prec[:, :, x].T
-#     precip = ndimage.map_coordinates(prec1, coor_estac)
-#     tmin1 = tmin[:, :, x].T
-#     tmini = ndimage.map_coordinates(tmin1, coor_estac)
-#     for ponto in precip:
-#         print str(int(ponto)) + "," + str(int(tmini[ponto]))
+    lat_coor.append(i[0])
+    lon_coor.append(i[1])
+    coor_estac = np.array([lon_coor, lat_coor])
+    with open(cidteste + cid[coor.index(i)] + '.csv', 'wb') as writecsv:
+        for x in xrange(0, rec):
+            prec1 = prec[:, :, x].T
+            precip = ndimage.map_coordinates(prec1, coor_estac)
+            tmin1 = tmin[:, :, x].T
+            tmini = ndimage.map_coordinates(tmin1, coor_estac)
+            timestamp = datetime.today() + relativedelta(months=x)
+            ano = timestamp.year
+            mesa = converte_mes(timestamp.month)
+            timestampfinal = str(ano) + '-' + mesa
+            saida = timestampfinal + ',' + str(precip.tolist()) + ',' + str(calcula_lapse_rate(
+                dheight[coor.index(i)], precip, tmini).tolist())
+            saida = saida.translate(None, '[]')
+            writecsv.write(saida + '\n')
+    lat_coor.pop()
+    lon_coor.pop()
 
-
-# tmin = tmin[:, :, 0].T
-# prec = prec[:, :, 1].T
-# tmin = ndimage.map_coordinates(tmin, coor_estac)
-# prec = ndimage.map_coordinates(prec, coor_estac)
-# print prec
-# tmin = ndimage.map_coordinates(tmin, coor_estac)
-# prec = ndimage.map_coordinates(prec, coor_estac)
-# print tmax[0]
-# print
-# print teste1.shape
-# teste1 = np.rollaxis(teste1, 0, 3)
-# teste1 = np.rollaxis(teste1, 0, 2)
-# print teste1[1,1,1]
-# nrows = tmax.shape[1]
-# ncols = tmax.shape[0]
-# print teste1
-# print_slice('tmax.01.2013120300.mensal_1.0.dat', 30, 90)
 """ IMPORTANTE >> teste1[:.:,1].T
  tranposta, fortran inverte os axis por default! """
 
