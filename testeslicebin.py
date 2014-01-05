@@ -1,10 +1,7 @@
 # -*- coding: UTF-8 -*-
 
 import numpy as np
-import csv
-import math
-from scipy import ndimage, interpolate
-import matplotlib.pyplot as plt
+from scipy import ndimage
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
@@ -66,10 +63,6 @@ with open('estac_total_altitudes', 'r') as listaestac:
         cid.append(data_lixo[6])
 
 
-"""PASSAR O COOR NA PORRA DO SCIPY INTERPOLATE CARAI DE ASA!!!"""
-
-""" O CAVALINHO EH FODA!"""
-
 coor = map(latlon_to_grid, lat, lon)
 
 lat_coor = []
@@ -91,41 +84,55 @@ rlatini = -89.
 rlatfim = 90.
 
 """"""""""""""""""""""""""""""""""""""
-# tmax.01.2013121700.daily_1.0.dat
-# tmax.01.2013120300.mensal_1.0.dat
-# tmax = readslice('tmax.01.2013121700.daily_1.0.dat', nx, ny)
-tmin = readslice('tmin.01.2013120300.mensal_1.0.dat', nx, ny)
-prec = readslice('prate.01.2013120300.mensal_1.0.dat', nx, ny)
+""""""""""""""""""""""""""""""""""""""
+entrada = '/home/operacao/cfst2mprate8meses/cfs30dydados/CFSv2/'
+ontem = datetime.today() - relativedelta(days=1)
+dataontem = str(ontem.year) + converte_mes(
+    ontem.month) + converte_mes(ontem.day)
+
+tmin = readslice(entrada + dataontem +
+                 '/tmin.01.' + dataontem + '00.daily_1.0.dat', nx, ny)
+tmax = readslice(entrada + dataontem +
+                 '/tmax.01.' + dataontem + '00.daily_1.0.dat', nx, ny)
+prec = readslice(entrada + dataontem +
+                 '/prate.01.' + dataontem + '00.daily_1.0.dat', nx, ny)
 
 rec = tmin.shape[0]
 rec /= nx * ny
 tmin = tmin.reshape(nx, ny, rec, order='F')
+tmax = tmax.reshape(nx, ny, rec, order='F')
 prec = prec.reshape(nx, ny, rec, order='F')
 
-cidteste = '/home/elder/cidteste/'
+
+output = '/home/operacao/cfst2mprate8meses/cfs30dydados/CFSv2/relatorios_novo/' + \
+    dataontem + '/'
+os.mkdir(output)
+today = datetime.today()
+
+
 for i in coor:
-    lat_coor.append(i[0])
-    lon_coor.append(i[1])
-    coor_estac = np.array([lon_coor, lat_coor])
-    with open(cidteste + cid[coor.index(i)] + '.csv', 'wb') as writecsv:
+    coor_estac = np.array([[i[1]], [i[0]]])
+    with open(output + cid[coor.index(i)] + '.csv', 'wb') as writecsv:
         for x in xrange(0, rec):
             prec1 = prec[:, :, x].T
-            precip = ndimage.map_coordinates(prec1, coor_estac)
+            precip = ndimage.map_coordinates(
+                prec[:, :, x].T, coor_estac, order=1, output=np.int)
             tmin1 = tmin[:, :, x].T
-            tmini = ndimage.map_coordinates(tmin1, coor_estac)
-            timestamp = datetime.today() + relativedelta(months=x)
+            tmini = ndimage.map_coordinates(
+                tmin[:, :, x].T, coor_estac, order=1, output=np.int)
+            tmax1 = tmax[:, :, x].T
+            tmaxi = ndimage.map_coordinates(
+                tmax[:, :, x].T, coor_estac, order=1, output=np.int)
+            timestamp = today + relativedelta(days=x)
             ano = timestamp.year
             mesa = converte_mes(timestamp.month)
-            timestampfinal = str(ano) + '-' + mesa
-            saida = timestampfinal + ',' + str(precip.tolist()) + ',' + str(calcula_lapse_rate(
-                dheight[coor.index(i)], precip, tmini).tolist())
-            saida = saida.translate(None, '[]')
-            writecsv.write(saida + '\n')
-    lat_coor.pop()
-    lon_coor.pop()
-
-""" IMPORTANTE >> teste1[:.:,1].T
- tranposta, fortran inverte os axis por default! """
+            daya = converte_mes(timestamp.day)
+            timestampfinal = str(ano) + '-' + mesa + '-' + daya
+            saida += timestampfinal + ',' + str(precip[0]) + ',' + str(calcula_lapse_rate(
+                dheight[coor.index(i)], precip[0], tmini[0])) + ',' + str(calcula_lapse_rate(
+                dheight[coor.index(i)], precip[0], tmaxi[0]))
+            saida += '\n'
+        writecsv.write(saida)
 
 # im = plt.imshow(testet1, origin='lower',
 #                 interpolation='nearest', extent=[0, ncols, 0, nrows])
