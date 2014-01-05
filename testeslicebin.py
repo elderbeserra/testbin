@@ -81,7 +81,7 @@ ny = 180
 rlonini = 0.
 rlonfim = 360.
 # Latitude mais SUL
-rlatini = -90.
+rlatini = -89.
 rlatfim = 90.
 
 """"""""""""""""""""""""""""""""""""""
@@ -109,6 +109,11 @@ output = '/home/operacao/cfst2mprate8meses/cfs30dydados/CFSv2/relatorios_novo/' 
     dataontem + '/'
 os.mkdir(output)
 today = datetime.today()
+datarodada = today - relativedelta(days=1)
+anorod = datarodada.year
+mesarod = converte_mes(datarodada.month)
+dayarod = converte_mes(datarodada.day)
+datarodada1 = str(anorod) + '-' + mesarod + '-' + dayarod
 
 for i in coor:
     saida = ''
@@ -129,7 +134,7 @@ for i in coor:
             mesa = converte_mes(timestamp.month)
             daya = converte_mes(timestamp.day)
             timestampfinal = str(ano) + '-' + mesa + '-' + daya
-            saida += timestampfinal + ',' + str(precip[0]) + ',' + str(calcula_lapse_rate(
+            saida += timestampfinal + ',' + datarodada1 + ',' + str(precip[0]) + ',' + str(calcula_lapse_rate(
                 dheight[coor.index(i)], precip[0], tmini[0])) + ',' + str(calcula_lapse_rate(
                 dheight[coor.index(i)], precip[0], tmaxi[0]))
             saida += '\n'
