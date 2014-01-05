@@ -1,5 +1,6 @@
 # -*- coding: UTF-8 -*-
 
+import os
 import numpy as np
 from scipy import ndimage
 from datetime import datetime
@@ -14,7 +15,7 @@ def readslice(inputfilename, nx, ny):
 
 
 def latlon_to_grid(lat, lon):
-    ylat = lat + 90.
+    ylat = lat + 89.
     if lon > 0:
         xlon = lon
     else:
@@ -23,11 +24,11 @@ def latlon_to_grid(lat, lon):
 
 
 def calcula_lapse_rate(dheight, prec, var):
-    if dheight > 200.:
-        if prec > 2.:
-            return var - (dheight * 0.0065)
+    if dheight > 200:
+        if prec > 2:
+            return int(round(var - (dheight * 0.0065)))
         else:
-            return var - (dheight * 0.01)
+            return int(round(var - (dheight * 0.01)))
     else:
         return var
 
@@ -80,7 +81,7 @@ ny = 180
 rlonini = 0.
 rlonfim = 360.
 # Latitude mais SUL
-rlatini = -89.
+rlatini = -90.
 rlatfim = 90.
 
 """"""""""""""""""""""""""""""""""""""
@@ -109,8 +110,8 @@ output = '/home/operacao/cfst2mprate8meses/cfs30dydados/CFSv2/relatorios_novo/' 
 os.mkdir(output)
 today = datetime.today()
 
-
 for i in coor:
+    saida = ''
     coor_estac = np.array([[i[1]], [i[0]]])
     with open(output + cid[coor.index(i)] + '.csv', 'wb') as writecsv:
         for x in xrange(0, rec):
@@ -123,7 +124,7 @@ for i in coor:
             tmax1 = tmax[:, :, x].T
             tmaxi = ndimage.map_coordinates(
                 tmax[:, :, x].T, coor_estac, order=1, output=np.int)
-            timestamp = today + relativedelta(days=x)
+            timestamp = today + relativedelta(days=x) - relativedelta(days=1)
             ano = timestamp.year
             mesa = converte_mes(timestamp.month)
             daya = converte_mes(timestamp.day)
